@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Varsha Parmar — Web Developer</title>
+  <meta name="description" content="Varsha Parmar — Software Developer. Portfolio showcasing projects, skills and contact."/>
+  <style>
+    /* =========================
+       Variables & Base Reset
+       ========================= */
+    :root{
+      --bg-0:#bdc7db;
+      --bg-1:#081426;
+      --accent1:#2563eb; /* blue */
+      --accent2:#7c3aed; /* purple */
+      --muted:#9fb3ca;
+      --glass: rgba(255,255,255,0.03);
+      --card-bg: rgba(255,255,255,0.03);
+      --max-width:1100px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:linear-gradient(180deg,var(--bg-0), var(--bg-1));
+      color:#e6eef6;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      -webkit-tap-highlight-color:transparent;
+      overflow-x:hidden;
+      line-height:1.45;
+      -webkit-font-feature-settings: "liga" on;
+    }
+
+    /* =========================
+       Canvas Backgrounds (stacked)
+       ========================= */
+    .bg-wrap{
+      position:fixed;
+      inset:0;
+      z-index:0;
+      pointer-events:none;
+      overflow:hidden;
+    }
+    canvas.bg{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+
+    /* subtle glass overlay */
+    .bg-overlay {
+      position:fixed;
+      inset:0;
+      background: radial-gradient(circle at 10% 20%, rgba(37,99,235,0.06), transparent 8%),
+                  radial-gradient(circle at 85% 80%, rgba(124,58,237,0.05), transparent 10%);
+      z-index:1;
+      pointer-events:none;
+      mix-blend-mode:screen;
+    }
+
+    /* =========================
+       Page Layout / Nav
+       ========================= */
+    .nav {
+      position:fixed;
+      top:18px;
+      left:50%;
+      transform:translateX(-50%);
+      width:calc(100% - 40px);
+      max-width:var(--max-width);
+      z-index:40;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      padding:10px 14px;
+      border-radius:12px;
+      background: linear-gradient(180deg, rgba(10,12,18,0.55), rgba(10,12,18,0.28));
+      border:1px solid rgba(255,255,255,0.03);
+      backdrop-filter: blur(8px) saturate(1.05);
+    }
+    .brand{ font-weight:700; letter-spacing:0.4px; color:#fff }
+    .brand span{ color:var(--accent1) }
+
+    nav a{
+      color:var(--muted);
+      text-decoration:none;
+      margin-left:14px;
+      padding:8px 10px;
+      border-radius:8px;
+      font-size:14px;
+      transition: all .22s ease;
+    }
+    nav a:hover{ color: #fff; transform:translateY(-3px); text-shadow:0 6px 26px rgba(37,99,235,0.08) }
+
+    /* =========================
+       Sections & Container
+       ========================= */
+    main{ position:relative; z-index:5; }
+    .section{
+      padding:100px 20px 80px;
+      max-width:var(--max-width);
+      margin:0 auto;
+    }
+
+    /* HERO */
+    .hero {
+      display:grid;
+      grid-template-columns: 1fr 380px;
+      gap:28px;
+      align-items:center;
+      min-height:78vh;
+      padding-top:36px;
+    }
+    @media (max-width:920px){
+      .hero{ grid-template-columns: 1fr; padding-top:120px; gap:18px }
+      .hero-right{ order:-1; display:flex; justify-content:center }
+    }
+
+    .intro{
+      font-size:36px;
+      margin:0 0 12px 0;
+      line-height:1.02;
+      letter-spacing:-0.3px;
+      color: #f5fbff;
+    }
+    .intro .name { color:var(--accent1); background: linear-gradient(90deg,var(--accent1),var(--accent2)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; display:inline-block; }
+    .subtitle{ color:var(--muted); margin:0 0 14px; font-weight:500 }
+    .lead{ color:#cfe6ff; max-width:56ch; margin-bottom:18px; }
+
+    .hero-cta{ display:flex; gap:12px; flex-wrap:wrap; align-items:center }
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      padding:10px 16px; border-radius:10px; font-weight:700; cursor:pointer; border:0;
+      position:relative; overflow:hidden; text-decoration:none; color:inherit;
+      transition: transform .22s cubic-bezier(.2,.9,.3,1), box-shadow .22s;
+    }
+    .btn.primary{
+      background: linear-gradient(90deg,var(--accent1),var(--accent2));
+      color:#fff; box-shadow: 0 10px 40px rgba(37,99,235,0.12);
+    }
+    .btn.ghost{
+      background:transparent; color:var(--accent1); border:1px solid rgba(255,255,255,0.06);
+      backdrop-filter: blur(4px);
+    }
+    .btn:hover{ transform: translateY(-4px); box-shadow: 0 18px 60px rgba(37,99,235,0.08) }
+
+    /* ripple */
+    .ripple{ position:absolute; border-radius:50%; transform:translate(-50%,-50%) scale(0); background: rgba(255,255,255,0.12); pointer-events:none; animation:ripple .6s linear; }
+    @keyframes ripple{ to{ transform:translate(-50%,-50%) scale(6); opacity:0 } }
+
+    /* HERO RIGHT - round photo */
+    .photo-wrap{
+      width:340px; height:340px; border-radius:50%; padding:8px; position:relative;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border:1px solid rgba(255,255,255,0.04);
+      box-shadow: 0 30px 90px rgba(2,6,23,0.7);
+      display:flex; align-items:center; justify-content:center; margin-left:auto;
+      transition: transform .8s cubic-bezier(.2,.9,.3,1);
+    }
+    .photo-wrap img{ width:100%; height:100%; object-fit:cover; border-radius:50%; display:block; border:3px solid rgba(255,255,255,0.03); transition: transform .6s ease, box-shadow .6s; }
+    .photo-wrap:hover{ transform: translateY(-10px); }
+    .photo-wrap::after{
+      content:""; position:absolute; inset:-12%; border-radius:50%; filter:blur(40px);
+      background: radial-gradient(circle at 30% 30%, rgba(37,99,235,0.18), transparent 12%),
+                  radial-gradient(circle at 70% 70%, rgba(124,58,237,0.14), transparent 12%);
+      z-index:-1;
+      pointer-events:none;
+    }
+
+    /* ABOUT */
+    h2{ color:var(--accent2); font-size:20px; margin-bottom:18px }
+    .about-grid{ display:grid; grid-template-columns:1fr 260px; gap:18px; align-items:start }
+    @media (max-width:920px){ .about-grid{ grid-template-columns:1fr } }
+    .about-card{ background:var(--card-bg); padding:18px; border-radius:12px; border:1px solid rgba(255,255,255,0.03) }
+    .list{ margin-top:12px; color:var(--muted); list-style:none; padding:0 }
+
+    /* PROJECTS */
+    .projects-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap:18px; margin-top:14px }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.03);
+      transition: transform .35s ease, box-shadow .35s;
+      display:flex; flex-direction:column; gap:8px; overflow:hidden;
+    }
+    .card:hover{ transform: translateY(-10px); box-shadow: 0 24px 80px rgba(2,6,23,0.6) }
+    .card .thumb{ width:100%; height:160px; border-radius:10px; overflow:hidden; border:1px solid rgba(255,255,255,0.02) }
+    .card .thumb img{ width:100%; height:100%; object-fit:cover; display:block; transition: transform .6s ease; }
+    .card:hover .thumb img{ transform: scale(1.04) }
+    .card h3{ margin:6px 0 0 0 }
+    .card-desc{ color:var(--muted); font-size:14px }
+    .card .tech{ font-size:13px; color:#b5d0ff }
+    .card-actions{ margin-top:auto; display:flex; gap:8px; }
+
+    /* CONTACT */
+    .contact-grid{ display:grid; grid-template-columns:1fr 300px; gap:18px }
+    @media (max-width:920px){ .contact-grid{ grid-template-columns:1fr } }
+    .contact-form{ background:var(--card-bg); padding:14px; border-radius:10px; border:1px solid rgba(255,255,255,0.03); display:flex; flex-direction:column; gap:10px }
+    .contact-form input, .contact-form textarea{ padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); background:transparent; color:inherit }
+    .contact-form input:focus, .contact-form textarea:focus{ outline:none; box-shadow: 0 10px 40px rgba(37,99,235,0.06) }
+
+    /* Footer */
+    .footer{ padding:40px 20px; text-align:center; color:var(--muted); border-top:1px solid rgba(255,255,255,0.02); margin-top:36px }
+
+    /* reveal */
+    .reveal{ opacity:0; transform: translateY(16px); transition: opacity .7s ease, transform .7s ease }
+    .reveal.show{ opacity:1; transform:none }
+
+    /* small tweaks */
+    a.icon{ display:inline-block; padding:8px 10px; border-radius:8px; color:var(--muted); border:1px solid rgba(255,255,255,0.02); text-decoration:none }
+    .muted{ color:var(--muted) }
+
+    /* Responsive */
+    @media (max-width:520px){
+      .photo-wrap{ width:220px; height:220px }
+      .intro{ font-size:28px }
+    }
+  </style>
+</head>
+<body>
+  <!-- =========================
+       Background: aurora + particles
+       Implemented with two canvases:
+         - aurora-canvas: moving gradient waves (GPU-friendly)
+         - particles-canvas: floating glowing orbs
+     ========================= -->
+  <div class="bg-wrap" aria-hidden="true">
+    <canvas id="aurora-canvas" class="bg"></canvas>
+    <canvas id="particles-canvas" class="bg"></canvas>
+    <div class="bg-overlay"></div>
+  </div>
+
+  <!-- NAV -->
+  <div class="nav" role="navigation" aria-label="Primary">
+    <div class="brand">Varsha Parmar</div>
+    <nav>
+      <a href="#home">Home</a>
+      <a href="#about">About</a>
+      <a href="#projects">Projects</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+
+  <main>
+    <!-- HERO -->
+    <section id="home" class="section hero" aria-label="Home">
+      <div>
+        <h1 class="intro">
+          <span class="name" id="name-anim">Hi, I'm <span class="name">Varsha Parmar</span></span>
+        </h1>
+        <p class="subtitle">Software Developer • Web Developer</p>
+        <p class="lead">Passionate about building modern, clean, and responsive web experiences. I create accessible and high-performance interfaces using HTML, CSS and JavaScript.</p>
+
+        <div class="hero-cta">
+          <a class="btn primary" href="#projects" id="view-work">View My Work</a>
+          <a class="btn ghost" href="#" id="download-resume">Download Resume</a>
+        </div>
+      </div>
+
+      <div class="hero-right" aria-hidden="false">
+        <!-- Replace the src below with your real profile image -->
+        <!-- Recommended: drop in file assets/profile.jpg or change path -->
+        <div class="photo-wrap" title="Varsha Parmar — Profile photo">
+          <img id="profile-photo" src="img1.webp" alt="Varsha Parmar — Profile photo" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about" class="section reveal" aria-labelledby="about-heading">
+      <h2 id="about-heading">About Me</h2>
+      <div class="about-grid container">
+        <div class="about-card">
+          <p>I am <strong>Varsha Parmar</strong>, a software developer focused on crafting beautiful user interfaces and smooth digital experiences.
+          I build responsive, accessible, and maintainable web apps using HTML, CSS, and JavaScript.</p>
+          <ul class="list">
+            <li>HTML • CSS • JavaScript</li>
+            
+            <li>Performance-minded & Clean Code</li>
+          </ul>
+        </div>
+
+        <div class="about-stats">
+          <div class="stat" style="background:var(--card-bg); padding:14px; border-radius:10px; text-align:center;">
+            <strong style="display:block; font-size:18px;">3+</strong>
+            <span class="muted">Projects</span>
+          </div>
+          <div class="stat" style="background:var(--card-bg); padding:14px; border-radius:10px; text-align:center;">
+            <strong style="display:block; font-size:18px;">—</strong>
+            <span class="muted">Open to new opportunities</span>
+          </div>
+          <div class="stat" style="background:var(--card-bg); padding:14px; border-radius:10px; text-align:center;">
+            <strong style="display:block; font-size:18px;">India</strong>
+            <span class="muted">Anand</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJECTS -->
+    <section id="projects" class="section reveal" aria-labelledby="projects-heading">
+      <h2 id="projects-heading">Projects</h2>
+      <div class="projects-grid container" id="projects-grid">
+        <!-- Project 1 -->
+        <article class="card">
+          <div class="thumb">
+            <!-- Replace with assets/project1.jpg -->
+            <img src="img2.webp" alt="Project 1 — Portfolio Design"/>
+          </div>
+          <h3>Portfolio Design</h3>
+          <p class="card-desc">A modern, responsive portfolio built with HTML, CSS and JS — focused on smooth animations and accessibility.</p>
+          <div class="tech">HTML • CSS • JavaScript</div>
+          <div class="card-actions">
+            <a class="btn small primary" href="#" target="_blank">GitHub</a>
+            <a class="btn small ghost" href="#" target="_blank">Live Demo</a>
+          </div>
+        </article>
+
+        <!-- Project 2 -->
+        <article class="card">
+          <div class="thumb">
+            <!-- Replace with assets/project2.jpg -->
+            <img src="img3.jpg" alt="Project 2 — Hotel Management System"/>
+          </div>
+          <h3>Hotel Management System</h3>
+          <p class="card-desc">A lightweight hotel management front-end with form validation and UI components.</p>
+          <div class="tech">HTML • CSS • JavaScript</div>
+          <div class="card-actions">
+            <a class="btn small primary" href="#" target="_blank">GitHub</a>
+            <a class="btn small ghost" href="#" target="_blank">Live Demo</a>
+          </div>
+        </article>
+
+        <!-- Project 3 -->
+        <article class="card">
+          <div class="thumb">
+            <!-- Replace with assets/project3.jpg -->
+            <img src="img4.jpg" alt="Project 3 — Web App"/>
+          </div>
+          <h3>Web App (Example)</h3>
+          <p class="card-desc">An interactive web app featuring dynamic UI, client-side storage and offline-friendly patterns.</p>
+          <div class="tech">HTML • CSS • JavaScript</div>
+          <div class="card-actions">
+            <a class="btn small primary" href="#" target="_blank">GitHub</a>
+            <a class="btn small ghost" href="#" target="_blank">Live Demo</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="section reveal contact-section" aria-labelledby="contact-heading">
+      <h2 id="contact-heading">Contact</h2>
+      <div class="contact-grid container">
+        <form class="contact-form" id="contact-form" aria-label="Contact form">
+          <label><span class="muted">Name</span><input name="name" required /></label>
+          <label><span class="muted">Email</span><input name="email" type="email" required /></label>
+          <label><span class="muted">Message</span><textarea name="message" rows="4" required></textarea></label>
+          <button class="btn primary" type="submit">Send Message</button>
+        </form>
+
+        <aside class="contact-info" style="background:var(--card-bg); padding:14px; border-radius:10px; border:1px solid rgba(255,255,255,0.03)">
+          <p>Email: <a href="mailto:vparmar1076@gmail.com">vparmar1076@gmail.com</a></p>
+          <p>GitHub: <a href="https://github.com/varsha1076" target="_blank">varsha1076</a></p>
+          <p>LinkedIn: <a href="https://linkedin.com/in/varsha1076" target="_blank">varsha1076</a></p>
+          <div style="margin-top:10px; display:flex; gap:8px">
+            <a class="icon" href="https://github.com/varsha1076" target="_blank">GH</a>
+            <a class="icon" href="https://linkedin.com/in/varsha1076" target="_blank">IN</a>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div style="max-width:var(--max-width); margin:0 auto; padding:0 20px;">
+        <p>© <span id="year"></span> Varsha Parmar — Built with ❤️ • HTML/CSS/JS</p>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    /* =================================================
+       Utilities & Setup
+       ================================================= */
+    (function(){
+      // set year
+      document.getElementById('year').textContent = new Date().getFullYear();
+
+      // smooth nav anchor scrolling with offset
+      document.querySelectorAll('a[href^="#"]').forEach(a => {
+        a.addEventListener('click', (e) => {
+          const href = a.getAttribute('href');
+          if (!href.startsWith('#')) return;
+          const el = document.querySelector(href);
+          if (!el) return;
+          e.preventDefault();
+          const y = el.getBoundingClientRect().top + window.scrollY - 72;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        });
+      });
+
+      // reveal on scroll
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) entry.target.classList.add('show');
+        });
+      }, { threshold: 0.12 });
+      document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+      // button ripple effect
+      document.addEventListener('click', (ev) => {
+        const btn = ev.target.closest('.btn');
+        if (!btn) return;
+        const rect = btn.getBoundingClientRect();
+        const ripple = document.createElement('span');
+        ripple.className = 'ripple';
+        ripple.style.left = (ev.clientX - rect.left) + 'px';
+        ripple.style.top = (ev.clientY - rect.top) + 'px';
+        ripple.style.width = ripple.style.height = Math.max(rect.width, rect.height) + 'px';
+        btn.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 700);
+      });
+
+      // contact form demo
+      const contact = document.getElementById('contact-form');
+      contact.addEventListener('submit', (e) => {
+        e.preventDefault();
+        alert('Thanks — your message was sent (demo). Replace with a backend or EmailJS/Netlify forms).');
+        contact.reset();
+      });
+
+      // resume placeholder
+      document.getElementById('download-resume').addEventListener('click', (e) => {
+        e.preventDefault();
+        alert('Resume download placeholder. Add your resume and change this link to "assets/resume.pdf"');
+      });
+
+      // interactive photo parallax
+      const photoWrap = document.querySelector('.photo-wrap');
+      if (photoWrap) {
+        document.addEventListener('mousemove', (ev) => {
+          const dx = (ev.clientX - window.innerWidth/2) / window.innerWidth;
+          const dy = (ev.clientY - window.innerHeight/2) / window.innerHeight;
+          photoWrap.style.transform = `translate3d(${dx*10}px, ${dy*8}px, 0)`;
+        });
+      }
+    })();
+
+    /* =================================================
+       Aurora Waves Canvas
+       - Uses multiple gradient bands that shift horizontally & vertically
+       - Lightweight CPU usage by using scaled down offscreen canvas
+       ================================================= */
+    (function aurora(){
+      const canvas = document.getElementById('aurora-canvas');
+      if (!canvas || !canvas.getContext) return;
+      const ctx = canvas.getContext('2d');
+      let w = canvas.width = innerWidth;
+      let h = canvas.height = innerHeight;
+      const bands = [];
+      const BAND_COUNT = 5;
+
+      function rand(min,max){ return Math.random()*(max-min)+min; }
+
+      for(let i=0;i<BAND_COUNT;i++){
+        bands.push({
+          offset: rand(0, Math.PI*2),
+          speed: rand(0.002,0.007),
+          amplitude: rand(40,140),
+          y: rand(h*0.1, h*0.9),
+          hue: 210 + i*10 + rand(-6,6),
+          sat: rand(60,90),
+          light: rand(40,70),
+          alpha: rand(0.06, 0.18),
+        });
+      }
+
+      let t = 0;
+      function resize(){
+        w = canvas.width = innerWidth;
+        h = canvas.height = innerHeight;
+      }
+      window.addEventListener('resize', resize, {passive:true});
+
+      function draw(){
+        ctx.clearRect(0,0,w,h);
+        // base soft gradient
+        const g = ctx.createLinearGradient(0,0,w,h);
+        g.addColorStop(0, 'rgba(2,6,23,0.8)');
+        g.addColorStop(1, 'rgba(6,8,20,0.9)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0,0,w,h);
+
+        // draw each band as soft blurred strip using composite operations
+        bands.forEach((b, i) => {
+          const path = new Path2D();
+          const amplitude = b.amplitude;
+          const segments = 60;
+          for(let x=0; x<=segments; x++){
+            const px = (x/segments) * w;
+            const ang = b.offset + t * b.speed + x*0.06;
+            const py = b.y + Math.sin(ang) * amplitude * (1 + 0.15*Math.sin(t*0.01 + i));
+            if (x===0) path.moveTo(px, py);
+            else path.lineTo(px, py);
+          }
+          // create gradient for band
+          const bandGrad = ctx.createLinearGradient(0, b.y-amplitude, 0, b.y+amplitude);
+          const hcol = `hsl(${b.hue} ${b.sat}% ${b.light}%)`;
+          bandGrad.addColorStop(0, 'rgba(0,0,0,0)');
+          bandGrad.addColorStop(0.25, `${hcol}` );
+          bandGrad.addColorStop(0.5, `${hcol}`);
+          bandGrad.addColorStop(0.75, `${hcol}`);
+          bandGrad.addColorStop(1, 'rgba(0,0,0,0)');
+
+          ctx.save();
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.fillStyle = bandGrad;
+          ctx.globalAlpha = b.alpha;
+          ctx.filter = 'blur(20px)';
+          ctx.fill(path);
+          ctx.restore();
+        });
+
+        t += 1;
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    /* =================================================
+       Particles Canvas (floating orbs)
+       ================================================= */
+    (function particles(){
+      const canvas = document.getElementById('particles-canvas');
+      if (!canvas || !canvas.getContext) return;
+      const ctx = canvas.getContext('2d');
+      let DPR = Math.min(window.devicePixelRatio || 1, 2);
+      let w = canvas.width = innerWidth * DPR;
+      let h = canvas.height = innerHeight * DPR;
+      canvas.style.width = innerWidth + 'px';
+      canvas.style.height = innerHeight + 'px';
+      ctx.scale(DPR, DPR);
+
+      let particles = [];
+      function rand(min,max){ return Math.random()*(max-min)+min; }
+      function init(){
+        particles = [];
+        const count = Math.max(18, Math.floor((innerWidth * innerHeight) / 80000));
+        for(let i=0;i<count;i++){
+          particles.push({
+            x: Math.random()*innerWidth,
+            y: Math.random()*innerHeight,
+            r: rand(0.8,3.5),
+            vx: rand(-0.12,0.12),
+            vy: rand(-0.05,0.05),
+            alpha: rand(0.06, 0.28),
+            hue: 200 + Math.random()*60
+          });
+        }
+      }
+      init();
+
+      window.addEventListener('resize', () => {
+        DPR = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = innerWidth * DPR;
+        canvas.height = innerHeight * DPR;
+        canvas.style.width = innerWidth + 'px';
+        canvas.style.height = innerHeight + 'px';
+        ctx.setTransform(DPR,0,0,DPR,0,0);
+        init();
+      }, {passive:true});
+
+      function draw(){
+        ctx.clearRect(0,0,innerWidth,innerHeight);
+        for(const p of particles){
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x < -20) p.x = innerWidth + 20;
+          if (p.x > innerWidth + 20) p.x = -20;
+          if (p.y < -20) p.y = innerHeight + 20;
+          if (p.y > innerHeight + 20) p.y = -20;
+
+          ctx.beginPath();
+          // soft glow with radial gradient
+          const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r*10);
+          g.addColorStop(0, `rgba(255,255,255,${p.alpha})`);
+          g.addColorStop(0.2, `hsla(${p.hue},80%,65%,${p.alpha*0.7})`);
+          g.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = g;
+          ctx.arc(p.x, p.y, p.r*6, 0, Math.PI*2);
+          ctx.fill();
+        }
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    /* =================================================
+       Performance note:
+       - If on mobile / low device, you may want to disable canvas animations.
+       - Simple auto-detect: reduce particle count when innerWidth < 600
+       ================================================= */
+
+    /* Optional tiny enhancement: keyboard shortcuts for quick navigation (H/A/P/C) */
+    (function shortcuts(){
+      document.addEventListener('keydown', (ev) => {
+        if (ev.key.toLowerCase() === 'h') document.querySelector('a[href="#home"]').click();
+        if (ev.key.toLowerCase() === 'a') document.querySelector('a[href="#about"]').click();
+        if (ev.key.toLowerCase() === 'p') document.querySelector('a[href="#projects"]').click();
+        if (ev.key.toLowerCase() === 'c') document.querySelector('a[href="#contact"]').click();
+      });
+    })();
+  </script>
+</body>
+</html>
